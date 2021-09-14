@@ -7,7 +7,9 @@ The most advanced version of Java which can be used for these scripts is 15. It 
 
 ## tapeEjection
 
-This script automates the ejection of tapes from Spectra Logic's BlackPearl system via Spectra Logic's ds3_java_cli. Tapes are provided to the script in a single column CSV file along with the number of moves to execute. The number of moves specified should not exceed the number of available Entry/Exit (EE) slots in your tape library.
+This script automates the ejection of tapes from Spectra Logic's BlackPearl system via Spectra Logic's ds3_java_cli. Tapes are provided to the script in a single column CSV file along with the number of moves to execute. The number of moves specified should not exceed the number of available Entry/Exit (EE) slots in your tape library. This script does support the use of resource files on Linux systems. (I'm not quite sure how to load them on Windows.)
+
+Sample: `./bp_ejects --ds3 /Users/foo/Downloads/ds3_java_cli-5.1.2/bin -e 10.10.10.7 -a AcCeS5 -k 5eCret --http --input-file tape-list.csv --moves 10 --print` 
 
 ##### Commands
 
@@ -19,20 +21,24 @@ This script automates the ejection of tapes from Spectra Logic's BlackPearl syst
   
 	--endpoint	BlackPearl data IP address. (-e) also works.
   
-  --http		Use an insecure, non-SSL connection.
+ 	--help		Prints help menu.
+	
+	--http		Use an insecure, non-SSL connection.
   
-  --input-file	Path to the file holding the list of tapes.
+ 	--input-file	Path to the file holding the list of tapes.
   
-  --max-moves	Maximum number of moves to execute. (-m/--moves) also work.
+	--max-moves	Maximum number of moves to execute. (-m/--moves) also work.
   
-  --print		Messages are printed to the shell. 
+	--print		Messages are printed to the shell. 
   
   <b>Input File</b>
   
   The input file is just a single column of tape barcodes that can or cannot include a header. If a header is included, it must be bar_code.
   
-  bar_code
-  123456L8
+  Sample: 
+
+  bar_code  
+  123456L8  
   124567JE
   
   
