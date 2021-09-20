@@ -15,23 +15,25 @@ import org.yaml.snakeyaml.Yaml;
 public class ArgParser
 {
 	// ds3_java_cli credential vars
-	String ds3Path;
-	String endpoint_ip;
-	String access_key;
-	String secret_key;
-	boolean https;
+	private String ds3Path;
+	private String endpoint_ip;
+	private String access_key;
+	private String secret_key;
+	private boolean https;
 	// ds2_java_cli vars
-	String bucket;
+	private String bucket;
 	// script vars
-	boolean debugging;
-	String filePrefix;
-	boolean ignoreUsedTapes;
-	String inputFilePath;
-	boolean isWindows;
-	int max_moves;
-	boolean print;
-	String savePath;
-	boolean printHelp;
+	private boolean debugging;
+	private String filePrefix;
+	private boolean ignoreUsedTapes;
+	private String inputFilePath;
+	private boolean isWindows;
+	private int max_moves;
+	private String output_path;
+	private boolean print;
+	private int restore_count;
+	private String savePath;
+	private boolean printHelp;
 
 	public ArgParser()
 	{
@@ -49,6 +51,7 @@ public class ArgParser
 		debugging = false;
 		inputFilePath = "./nothing.here";
 		max_moves = 0;
+		restore_count = 1;
 		ignoreUsedTapes = false;
 		printHelp = false;
 	}
@@ -73,6 +76,7 @@ public class ArgParser
 		inputFilePath = config.getInputFile();
 		max_moves = config.getEESlots();
 		ignoreUsedTapes = false;
+		restore_count = config.getRestoreCount();
 		printHelp = false;
 
 	}
@@ -92,6 +96,7 @@ public class ArgParser
 	public String getInputFile() { return inputFilePath; }
 	public int getMaxMoves() { return max_moves; }
 	public boolean printHelp() { return printHelp; }
+	public int getRestoreCount() { return restore_count; }
 
 	public ArgConfig loadConfiguration(String filePath)
 	{
@@ -202,6 +207,14 @@ public class ArgParser
 				case "-p":
 				case "--print":
 					print = true;
+					break;
+				case "--restores":
+				case "--restores-per-tape":
+					if(i+1<args.length)
+					{
+						restore_count = Integer.valueOf(args[i+1]);
+						i++;
+					}
 					break;
 				case "--save-path":
 					if(i+1<args.length)

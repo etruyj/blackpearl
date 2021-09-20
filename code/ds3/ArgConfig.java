@@ -8,19 +8,20 @@ package com.socialvagrancy.blackpearl.ds3;
 
 public class ArgConfig
 {
-	private String access_key;
-	private String bucket;
-	private Boolean debug;
-	private String ds3_path;
-	private String endpoint;
-	private String file_prefix;
-	private String file_size;
-	private Boolean https;
-	private String input_file;
-	private Integer entry_exit_slots;
-	private Boolean print_output;
-	private String save_path;
-	private String secret_key;
+	public String access_key;
+	public String bucket;
+	public Boolean debug;
+	public String ds3_path;
+	public String endpoint;
+	public String file_prefix;
+	public String file_size;
+	public Boolean https;
+	public String input_file;
+	public Integer entry_exit_slots;
+	public Boolean print_output;
+	public Integer restores_per_tape;
+	public String save_path;
+	public String secret_key;
 
 	public String getAccessKey()
 	{
@@ -183,6 +184,18 @@ public class ArgConfig
 		else
 		{
 			return print_output;
+		}
+	}
+
+	public int getRestoreCount()
+	{
+		if(restores_per_tape==null)
+		{
+			return 0;
+		}
+		else
+		{
+			return restores_per_tape;
 		}
 	}
 
