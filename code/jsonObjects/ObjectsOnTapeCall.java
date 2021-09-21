@@ -12,6 +12,7 @@ public class ObjectsOnTapeCall extends APICall
 
 	public String getTapeBarcode() { return Data.getBarcode(); }
 	public String getObjectBucket(int i) { return Data.getObjectBucket(i); }
+	public int getObjectCount() { return Data.getObjectCount(); }
 	public String getObjectId(int i) { return Data.getObjectId(i); }
 	public boolean getObjectInCache(int i) { return Data.isObjectInCache(i); }
 	public boolean getObjectIsLatest(int i) { return Data.isObjectLatest(i); }
@@ -38,6 +39,7 @@ public class ObjectsOnTapeCall extends APICall
 				return "Invalid index selected";
 			}
 		}
+		private int getObjectCount() { return result.length; }
 		private String getObjectId(int i)
 		{
 			if(i<result.length)

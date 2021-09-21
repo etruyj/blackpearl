@@ -34,6 +34,8 @@ public class ArgParser
 	private int restore_count;
 	private String savePath;
 	private boolean printHelp;
+	private boolean clear_cache;
+	private long max_file_size;
 
 	public ArgParser()
 	{
@@ -51,9 +53,11 @@ public class ArgParser
 		debugging = false;
 		inputFilePath = "./nothing.here";
 		max_moves = 0;
+		max_file_size = 0;
 		restore_count = 1;
 		ignoreUsedTapes = false;
 		printHelp = false;
+		clear_cache = false;
 	}
 
 	public ArgParser(String configFile)
@@ -75,9 +79,11 @@ public class ArgParser
 		debugging = config.getDebugging();
 		inputFilePath = config.getInputFile();
 		max_moves = config.getEESlots();
+		max_file_size = config.getFileSize();
 		ignoreUsedTapes = false;
 		restore_count = config.getRestoreCount();
 		printHelp = false;
+		clear_cache = false;
 
 	}
 
@@ -95,8 +101,10 @@ public class ArgParser
 	public boolean getIgnoreUsedTapes() { return ignoreUsedTapes; }
 	public String getInputFile() { return inputFilePath; }
 	public int getMaxMoves() { return max_moves; }
+	public long getMaxFileSize() { return max_file_size; }
 	public boolean printHelp() { return printHelp; }
 	public int getRestoreCount() { return restore_count; }
+	public boolean getClearCache() { return clear_cache; }
 
 	public ArgConfig loadConfiguration(String filePath)
 	{
@@ -139,6 +147,9 @@ public class ArgParser
 						bucket = args[i+1];
 						i++;
 					}
+					break;
+				case "--clear-cache":
+					clear_cache = true;
 					break;
 				case "--debug":
 					debugging = true;
