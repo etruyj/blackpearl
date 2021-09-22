@@ -37,7 +37,7 @@ public class MigrationCheck
 	public MigrationCheck(String pathToJavaCLI, boolean isSecure, String endpoint, String access_key, String secret_key, boolean isWindows)
 	{
 		java_cli = new DS3Interface(pathToJavaCLI, isSecure, endpoint, access_key, secret_key, isWindows);
-		logbook = new Logger("../logs/migration-check.log", 10240, 1, 1);
+		logbook = new Logger("../logs/migration-check.log", 10240, 0, 1);
 		gson = new Gson();
 	}
 
@@ -60,24 +60,34 @@ public class MigrationCheck
 		//=============================================
 		
 		ArrayList<String> tapes = selectTapesToTest(tapeList, EESize, printToShell, debug);
-	
+
 		if(clearCache)
 		{
-			// Clear the cache.
-			System.out.println("Cache should be cleared at this point.");
+			clearCache(isWindows, printToShell, debug);
 		}
 
-		// EJECT TAPES HERE.
 
 		// Check objects on individual tape.
 		for(int i=0; i<tapes.size(); i++)
 		{
+			ejectTape(tapes.get(i), isWindows, printToShell, debug);
+
 			if(checkObjectsOnTape(tapes.get(i), restoreCount, restoreSize, restorePath, isWindows, printToShell, debug))
 			{
+				if(printToShell || debug)
+				{
+					System.out.println("Verified tape (" + tapes.get(i) + ") is ready for removal.");
+				}
+
 				logbook.logWithSizedLogRotation("Verified tape (" + tapes.get(i) + ") and is ready for ejection.", 2);
 			}
 			else
 			{
+				if(printToShell || debug)
+				{
+					System.out.println("Unable to verify tape (" + tapes.get(i) + "). Do not remove.");
+				}
+
 				logbook.logWithSizedLogRotation("Verification of tape (" + tapes.get(i) + ") failed.", 2);
 			}
 		}
@@ -124,12 +134,12 @@ public class MigrationCheck
 			if(restoreObject(objects, restorePath, fileSize, objectsSelected, isWindows, printToShell, debug))
 			{
 				objects_tested_per_tape++;
-				System.out.println("Restore attempt successful.");
+				System.out.println("Restore attempt:\t[SUCCESS]");
 			}
 			else
 			{
 				successful_restores = false;
-				System.out.println("Restore attempt failed.");
+				System.out.println("Restore attempt:\t[FAILED]");
 			}
 
 			itr++;
@@ -137,6 +147,51 @@ public class MigrationCheck
 		
 		
 		return successful_restores;
+	}
+
+	private void clearCache(boolean isWindows, boolean printToShell, boolean debug)
+	{
+		String command = formatClearCache();
+
+		logbook.logWithSizedLogRotation("Clearing system cache...", 2);
+
+		if(printToShell || debug)
+		{
+			System.out.println("Clearing system cache...");
+			
+			if(debug)
+			{
+				System.out.println(command);
+			}
+		}
+
+		java_cli.executeProcess(command, isWindows);
+	}
+
+
+	private void ejectTape(String barcode, boolean isWindows, boolean printToShell, boolean debug)
+	{
+		// Ejecting the tape to test if the data is accessible someplace else.
+		String command = formatEjectTapeCall(barcode);
+			
+		logbook.logWithSizedLogRotation("Ejecting tape (" + barcode + ") to test data accessibility.", 2);
+
+		if(printToShell || debug)
+		{
+			System.out.println("\nEjecting tape: " + barcode);
+
+			if(debug)
+			{
+				System.out.println(command);
+			}
+		}
+
+		java_cli.executeProcess(command, isWindows);
+	}
+
+	private String formatClearCache()
+	{
+		return java_cli.getCommand() + " -c reclaim_cache";
 	}
 
 	private String formatEjectTapeCall(String barcode)
