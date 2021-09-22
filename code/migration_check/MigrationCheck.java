@@ -67,6 +67,9 @@ public class MigrationCheck
 			System.out.println("Cache should be cleared at this point.");
 		}
 
+		// EJECT TAPES HERE.
+
+		// Check objects on individual tape.
 		for(int i=0; i<tapes.size(); i++)
 		{
 			if(checkObjectsOnTape(tapes.get(i), restoreCount, restoreSize, restorePath, isWindows, printToShell, debug))
@@ -97,6 +100,7 @@ public class MigrationCheck
 
 		int itr = 0;
 		int objects_tested_per_tape = 0;
+		boolean successful_restores = true;
 
 		String command = formatObjectsOnTapeCall(barcode);
 		ObjectsOnTapeCall objects = getObjectsOnTape(command, isWindows, printToShell, debug);
@@ -122,12 +126,17 @@ public class MigrationCheck
 				objects_tested_per_tape++;
 				System.out.println("Restore attempt successful.");
 			}
+			else
+			{
+				successful_restores = false;
+				System.out.println("Restore attempt failed.");
+			}
 
 			itr++;
 		}
 		
 		
-		return true;
+		return successful_restores;
 	}
 
 	private String formatEjectTapeCall(String barcode)
@@ -135,9 +144,10 @@ public class MigrationCheck
 		return java_cli.getCommand() + " -c eject_tape -i " + barcode;
 	}
 
-	private String formatDownloadObject(String objectName, String savePath)
+	private String formatDownloadObject(String bucket, String objectName, String savePath)
 	{
-		return java_cli.getCommand() + " -c get_object -o " + objectName + " -p " + savePath;
+		return java_cli.getCommand() + " -c get_object -b " + bucket 
+			+ " -o '" + objectName + "' -d " + savePath;
 	}
 
 	private String formatObjectsOnTapeCall(String barcode)
@@ -232,18 +242,58 @@ public class MigrationCheck
 		// 	same object twice and to make sure we do pick an object.
 
 		
-		String toRestore = selectObjectForRestore(objects, fileSize, objectsSelected, printToShell, debug);
+		String[] toRestore = selectObjectForRestore(objects, fileSize, objectsSelected, printToShell, debug);
 	
-		System.out.println(toRestore);
+		if(!toRestore[0].equals("none selected"))
+		{
+			System.out.println(toRestore[1]);
 
-		return true; 
+			String command = formatDownloadObject(toRestore[0], toRestore[1], restorePath);
+
+			if(printToShell || debug)
+			{
+				System.out.println("Initiating restore request");
+				if(debug)
+				{
+					System.out.println(command);
+				}
+			}
+			
+			java_cli.executeProcess(command, isWindows);
+
+			// Check to see if the file exists.
+			String path = restorePath + "/" + toRestore[1];
+			File test = new File(path);
+
+			logbook.logWithSizedLogRotation("Testing object path: " + path, 2);
+
+
+			if(test.exists())
+			{
+				logbook.logWithSizedLogRotation("Object was verified in restore directory.", 2);
+				return true;
+			}
+			else
+			{
+				logbook.logWithSizedLogRotation("WARNING: Unabled to verify object in restore directory.", 2);
+				return false;
+			}
+		}
+
+		logbook.logWithSizedLogRotation("WARNING: Unabled to find asset to verify. Max-object size may be too small", 2);
+		return false; 
 	}
 
-	private String selectObjectForRestore(ObjectsOnTapeCall objects, long fileSize, boolean[] objectsSelected, boolean printToShell, boolean debug)
+	private String[] selectObjectForRestore(ObjectsOnTapeCall objects, long fileSize, boolean[] objectsSelected, boolean printToShell, boolean debug)
 	{
 		Random rand = new Random();
 		int selection = rand.nextInt(objectsSelected.length);
 		ArrayList<Integer> remainingOptions = new ArrayList<Integer>();
+		
+		// The object chosen. 
+		// [0] bucket - necessary for restore request.
+		// [1] object.
+		String[] chosen_object = new String[2];
 
 		// if tape has already been picked.
 		// build a list of remaining options to pick from.
@@ -267,9 +317,11 @@ public class MigrationCheck
 			}
 			else
 			{
+				chosen_object[0] = "none selected";
+
 				// No options remain.
 				logbook.logWithSizedLogRotation("No assets remain on this tape.", 3);
-				return "none selected.";
+				return chosen_object;
 			}
 		}
 		// Tape hasn't been selected. Mark it as selected.
@@ -282,8 +334,9 @@ public class MigrationCheck
 
 		if(fileSize<=0)
 		{
-			
-			return objects.getObjectName(selection);
+			chosen_object[0] = objects.getObjectBucket(selection);
+			chosen_object[1] = objects.getObjectName(selection);
+			return chosen_object;
 		}
 		else
 		{
@@ -291,7 +344,9 @@ public class MigrationCheck
 			if(fileSize < objects.getObjectLength(selection))
 			{
 				logbook.logWithSizedLogRotation("Object meets size requirements.", 2);
-				return objects.getObjectName(selection); 
+				chosen_object[0] = objects.getObjectBucket(selection);
+				chosen_object[1] = objects.getObjectName(selection);
+				return chosen_object;
 			}
 			else
 			{
