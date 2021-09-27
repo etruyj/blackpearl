@@ -17,6 +17,7 @@ import com.socialvagrancy.blackpearl.ds3.DS3Interface;
 import com.socialvagrancy.blackpearl.jsonObject.*;
 import com.socialvagrancy.blackpearl.tapeEjection.TapeEjection;
 
+import com.socialvagrancy.utils.FileManager;
 import com.socialvagrancy.utils.Logger;
 
 import java.io.BufferedReader;
@@ -25,23 +26,38 @@ import java.io.FileReader;
 import java.io.InputStream;
 import java.io.IOException;
 
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.Random;
 
 public class MigrationCheck
 {
 	private DS3Interface java_cli;
+	private FileManager report;
 	private Logger logbook;
 	private Gson gson;
+	private String tape_report_path;
 
 	public MigrationCheck(String pathToJavaCLI, boolean isSecure, String endpoint, String access_key, String secret_key, boolean isWindows)
 	{
 		java_cli = new DS3Interface(pathToJavaCLI, isSecure, endpoint, access_key, secret_key, isWindows);
 		logbook = new Logger("../logs/migration-check.log", 10240, 0, 1);
 		gson = new Gson();
+
+		// Configure the output report.
+		report = new FileManager();
+
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm");
+		LocalDateTime now = LocalDateTime.now();
+
+		tape_report_path = "../output/migrate_tapes-" + dtf.format(now) + ".csv";
+		report.createFileDeleteOld(tape_report_path, true);
+		report.appendToFile(tape_report_path, "barcode,verification");
 	}
 
-	public boolean verifyMigration(String tapeList, int EESize, int restoreCount, long restoreSize, String restorePath, boolean clearCache, boolean isWindows, boolean printToShell, boolean debug)
+	public void verifyMigration(String tapeList, int EESize, int restoreCount, long restoreSize, String restorePath, boolean clearCache, boolean isWindows, boolean printToShell, boolean debug)
 	{
 		//=============================================
 		// verifyMigration.
@@ -69,30 +85,62 @@ public class MigrationCheck
 
 		// Check objects on individual tape.
 		for(int i=0; i<tapes.size(); i++)
-		{
-			ejectTape(tapes.get(i), isWindows, printToShell, debug);
-
-			if(checkObjectsOnTape(tapes.get(i), restoreCount, restoreSize, restorePath, isWindows, printToShell, debug))
+		{	
+			
+			if(ejectTape(tapes.get(i), isWindows, printToShell, debug))
 			{
-				if(printToShell || debug)
+				if(verifyTapeEjected(tapes.get(i), isWindows, printToShell, debug))
 				{
-					System.out.println("Verified tape (" + tapes.get(i) + ") is ready for removal.");
-				}
+					if(checkObjectsOnTape(tapes.get(i), restoreCount, restoreSize, restorePath, isWindows, printToShell, debug))
+					{
+						if(printToShell || debug)
+						{
+							System.out.println("Verified tape (" + tapes.get(i) + ") is ready for removal.");
+						}
 
-				logbook.logWithSizedLogRotation("Verified tape (" + tapes.get(i) + ") and is ready for ejection.", 2);
+						logbook.logWithSizedLogRotation("Verified tape (" + tapes.get(i) + ") and is READY for ejection.", 2);
+				
+						reportFinding(tapes.get(i), "SUCCEEDED", tape_report_path);
+					}
+					else
+					{
+						if(printToShell || debug)
+						{
+							System.out.println("Unable to verify tape (" + tapes.get(i) + "). Do not remove.");
+						}
+
+						logbook.logWithSizedLogRotation("Verification of tape (" + tapes.get(i) + ") FAILED.", 2);
+			
+						reportFinding(tapes.get(i), "FAILED", tape_report_path);
+					}
+				}
+				else
+				{
+					logbook.logWithSizedLogRotation("Adding tape (" + tapes.get(i) + ") to end of list and moving on.", 2);
+
+					if(printToShell || debug)
+					{
+						System.out.println("Pausing for 5 seconds");
+					}
+
+					tapes.add(tapes.get(i));
+					
+					pause(5000, debug);
+				}
 			}
 			else
 			{
 				if(printToShell || debug)
 				{
-					System.out.println("Unable to verify tape (" + tapes.get(i) + "). Do not remove.");
+					System.out.println("Tape (" + tapes.get(i) + ") does not exist.");
 				}
+				
+				logbook.logWithSizedLogRotation("Tape (" + tapes.get(i) + ") does not exist. Skipping.", 3);
 
-				logbook.logWithSizedLogRotation("Verification of tape (" + tapes.get(i) + ") failed.", 2);
+				reportFinding(tapes.get(i), "Does not exist.", tape_report_path);
 			}
 		}
-
-		return true;
+		
 	}
 
 	//==============================================
@@ -115,7 +163,18 @@ public class MigrationCheck
 		String command = formatObjectsOnTapeCall(barcode);
 		ObjectsOnTapeCall objects = getObjectsOnTape(command, isWindows, printToShell, debug);
 
-		System.out.println("Objects count: " + objects.getObjectCount());
+		if(printToShell || debug)
+		{
+			if(objects.getObjectCount()<=0)
+			{
+				System.out.println("No objects to verify on tape (" + barcode + ")");
+			}
+
+			if(debug)
+			{
+				System.out.println("Objects count: " + objects.getObjectCount());
+			}
+		}
 
 		// Initialize the tracking variable as all false.
 		// When objects are picked or too large for the fileSize,
@@ -169,7 +228,7 @@ public class MigrationCheck
 	}
 
 
-	private void ejectTape(String barcode, boolean isWindows, boolean printToShell, boolean debug)
+	private boolean ejectTape(String barcode, boolean isWindows, boolean printToShell, boolean debug)
 	{
 		// Ejecting the tape to test if the data is accessible someplace else.
 		String command = formatEjectTapeCall(barcode);
@@ -186,7 +245,22 @@ public class MigrationCheck
 			}
 		}
 
-		java_cli.executeProcess(command, isWindows);
+		String result = java_cli.executeProcess(command, isWindows);
+
+		try
+		{
+			TapeInfoCall api_check = gson.fromJson(result, TapeInfoCall.class);	
+		}
+		catch(JsonParseException e)
+		{
+			logbook.logWithSizedLogRotation("ERROR: Unable to verify tape (" + barcode + ")", 3);
+			logbook.logWithSizedLogRotation(e.getMessage(), 3);
+
+			return false;
+		}
+
+
+		return true;
 	}
 
 	private String formatClearCache()
@@ -210,6 +284,11 @@ public class MigrationCheck
 		return java_cli.getCommand() + " -c get_objects_on_tape -i " + barcode;
 	}
 
+	private String formatVerifyEject(String barcode)
+	{
+		return java_cli.getCommand() + " -c get_tape -i " + barcode;
+	}
+
 	private ObjectsOnTapeCall getObjectsOnTape(String command, boolean isWindows, boolean printToShell, boolean debug)
 	{
 		if(debug)
@@ -218,23 +297,24 @@ public class MigrationCheck
 		}
 		
 		String result = java_cli.executeProcess(command, isWindows);
-		
+
 		try
 		{
 			ObjectsOnTapeCall objects = gson.fromJson(result, ObjectsOnTapeCall.class);
-
 			return objects;
 		}
 		catch(JsonParseException e)
 		{
-			logbook.logWithSizedLogRotation("Error: " + e.getMessage(), 3);
+			logbook.logWithSizedLogRotation("ERROR: " + e.getMessage(), 3);
+			logbook.logWithSizedLogRotation("WARNING: No objects returned from tape call.", 3);
 
 			if(printToShell || debug)
 			{
+				System.out.println("Error: invalid tape barcode.");
 				System.out.println(e.getMessage());
 			}
 		
-			return new ObjectsOnTapeCall();
+			return  new ObjectsOnTapeCall();
 		}
 	}
 
@@ -287,6 +367,23 @@ public class MigrationCheck
 		}
 
 		return tapeList;
+	}
+
+	private void pause(int duration, boolean debug)
+	{
+		if(debug)
+		{
+			System.out.println("Pausing execution for " + duration 
+					+ "ms.");
+		}
+
+		try { Thread.sleep(duration); }
+		catch(InterruptedException e) { System.out.println(e.getMessage()); }
+	}
+	
+	private void reportFinding(String barcode, String result, String path)
+	{
+		report.appendToFile(path, barcode + "," + result);
 	}
 
 	private boolean restoreObject(ObjectsOnTapeCall objects, String restorePath, long fileSize, boolean[] objectsSelected, boolean isWindows, boolean printToShell, boolean debug)
@@ -456,6 +553,81 @@ public class MigrationCheck
 
 		return selected_tapes;
 	}
+
+	private boolean verifyTapeEjected(String barcode, boolean isWindows, boolean printToShell, boolean debug)
+	{
+		// Verify tape is ejected before initiating restores.
+		// If the tape is performing a job, it won't be ejected.
+		// If the tape is in a drive when the restore request comes
+		// through the restore request will be performed before the
+		// tape was ejected. This prevents the data from being validated.
+		String command = formatVerifyEject(barcode);
+
+		logbook.logWithSizedLogRotation("Verify tape was ejected before initiating restore requests.", 2);
+
+		if(printToShell || debug)
+		{
+			System.out.println("Verifying tape (" + barcode 
+					+ ") was ejected before proceding.");
+			
+			if(debug)
+			{
+				System.out.println(command);
+			}
+		}
+
+		try
+		{
+			String response = java_cli.executeProcess(command, isWindows);
+			TapeInfoCall result = gson.fromJson(response, TapeInfoCall.class);
+
+			if(debug)
+			{
+				System.out.println("Tape state:\t[" 
+						+ result.getState() + "]");
+			}
+			if(result.getState().equals("EJECT_FROM_EE_PENDING"))
+			{
+				logbook.logWithSizedLogRotation("Tape (" + barcode 
+						+ ") has been ejected.", 2);
+
+				if(printToShell || debug)
+				{
+					System.out.println("Tape has been ejected.");
+				}
+
+				return true;
+			}
+			else
+			{
+				logbook.logWithSizedLogRotation("Tape (" + barcode 
+						+ ") eject is PENDING.", 2);
+
+				if(printToShell || debug)
+				{
+					System.out.println("Tape has not been ejected.");
+				}
+				
+				return false;
+			}
+		}
+		catch(JsonParseException e)
+		{
+			logbook.logWithSizedLogRotation(e.getMessage(), 3);
+
+			if(printToShell || debug)
+			{
+				System.out.println(e.getMessage());
+			}
+
+			return false;
+		}
+
+	}
+
+	//==============================================
+	// END PRIVATE FUNCTIONS
+	//==============================================
 
 	public static void main(String[] args)
 	{
