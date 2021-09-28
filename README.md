@@ -14,9 +14,9 @@ The most advanced version of Java which can be used for these scripts is 15. It 
 
 This script automates migration verification by ejecting tapes to be removed/deleted and then initiating restore requests to those tapes in order to verify the objects are accessible in a different location on the BlackPearl. A random group of tapes, specified by the --max-moves flag, are chosen from a provided list of tapes. After those tapes are moved to the corresponding library's EE slots, restore requests are issued for a number of files determined by the --restores flag. If all the files are restored successfully or if all files on the tape are restored successfully, the tape is okayed for ejection/reformat. If some of the files could not be restored, the check is failed. A report of each test is saved in the ../output directory.
 
-	BlackPearl performs CRC checks whenever an object enters cache. If the object is restored successfully, it will have passed this check and the integretity of the data will have been verified.
+BlackPearl performs CRC checks whenever an object enters cache. If the object is restored successfully, it will have passed this check and the integretity of the data will have been verified.
 
-	As this uses Spectra's ds3_java_cli, BlackPearl S3 credentials can be sourced from a resource file. More information can be found at developer.spectralogic.com/clients/
+As this uses Spectra's ds3_java_cli, BlackPearl S3 credentials can be sourced from a resource file. More information can be found at developer.spectralogic.com/clients/
 
 Sample: `./migration_verify --ds3 /path/to/ds3_java_cli-5.1.2/bin -e 10.10.10.7 -a AcCesS -k 5eCret --http --input-file /path/to/tapes-list.csv --moves 10 --restores 10 --max-size 50M --print --save-path /path/to/test/dir`
 
