@@ -13,7 +13,7 @@ Sample: `./bp_ejects --ds3 /Users/foo/Downloads/ds3_java_cli-5.1.2/bin -e 10.10.
 
 ##### Commands
 
-	--access_key	BlackPearl access key for the desired user. (-a) also works. 
+	--access-key	BlackPearl access key for the desired user. (-a) also works. 
   
 	--debug		Messages and commands are printed to the shell.
   
