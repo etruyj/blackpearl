@@ -43,7 +43,7 @@ public class MigrationCheck
 	public MigrationCheck(String pathToJavaCLI, boolean isSecure, String endpoint, String access_key, String secret_key, boolean isWindows)
 	{
 		java_cli = new DS3Interface(pathToJavaCLI, isSecure, endpoint, access_key, secret_key, isWindows);
-		logbook = new Logger("../logs/migration-check.log", 10240, 0, 1);
+		logbook = new Logger("../logs/migration-check.log", 102400, 0, 1);
 		gson = new Gson();
 
 		// Configure the output report.
@@ -55,6 +55,27 @@ public class MigrationCheck
 		tape_report_path = "../output/migrate_tapes-" + dtf.format(now) + ".csv";
 		report.createFileDeleteOld(tape_report_path, true);
 		report.appendToFile(tape_report_path, "barcode,verification");
+	}
+
+	public void printHelp()
+	{
+		try
+		{
+			File inFile = new File("../lib/help/migration_check.txt");
+
+			BufferedReader stdInput = new BufferedReader(new FileReader(inFile));
+
+			String input = null;
+
+			while((input = stdInput.readLine()) != null)
+			{
+				System.out.println(input);
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println(e.getMessage());
+		}	
 	}
 
 	public void verifyMigration(String tapeList, int EESize, int restoreCount, long restoreSize, String restorePath, boolean clearCache, boolean isWindows, boolean printToShell, boolean debug)
@@ -484,6 +505,7 @@ public class MigrationCheck
 
 		logbook.logWithSizedLogRotation("Attempting restore of object at index (" + selection + ").", 2);
 
+
 		if(fileSize<=0)
 		{
 			chosen_object[0] = objects.getObjectBucket(selection);
@@ -493,16 +515,16 @@ public class MigrationCheck
 		else
 		{
 			
-			if(fileSize < objects.getObjectLength(selection))
+			if(fileSize >= objects.getObjectLength(selection))
 			{
-				logbook.logWithSizedLogRotation("Object meets size requirements.", 2);
+				logbook.logWithSizedLogRotation("Object at index (" + selection + ") meets size requirements.", 2);
 				chosen_object[0] = objects.getObjectBucket(selection);
 				chosen_object[1] = objects.getObjectName(selection);
 				return chosen_object;
 			}
 			else
 			{
-				logbook.logWithSizedLogRotation("Object is larger than specified max size.", 2);
+				logbook.logWithSizedLogRotation("Object at index (" + selection + ") is larger than specified max size.", 2);
 				
 				return selectObjectForRestore(objects, fileSize, objectsSelected, printToShell, debug);
 				
@@ -631,14 +653,14 @@ public class MigrationCheck
 
 	public static void main(String[] args)
 	{
-		ArgParser aparser = new ArgParser("./migration_check/migration.conf");
+		ArgParser aparser = new ArgParser("../migration.conf");
 		aparser.parseInputs(args);
 
 		MigrationCheck checker = new MigrationCheck(aparser.getDS3Path(), aparser.getConnectionState(), aparser.getEndpoint(), aparser.getAccessKey(), aparser.getSecretKey(), aparser.getIsWindows());
 		
 		if(aparser.printHelp())
 		{
-			System.out.println("Help flag");
+			checker.printHelp();
 		}
 		else
 		{

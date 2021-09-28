@@ -126,6 +126,33 @@ public class ArgParser
 		}
 	}
 
+	private long convertUnitToBytes(String unit)
+	{
+		long conversion = 1;
+
+		switch(unit)
+		{
+			case "P":
+			case "p":
+				conversion *= 1024;
+			case "T":
+			case "t":
+				conversion *= 1024;
+			case "G":
+			case "g":
+				conversion *= 1024;
+			case "M":
+			case "m":
+				conversion *= 1024;
+			case "K":
+			case "k":
+				conversion *= 1024;
+				break;
+		}
+
+		return conversion;
+	}
+
 	public void parseInputs(String[] args)
 	{
 		for(int i=0; i<args.length; i++)
@@ -213,6 +240,15 @@ public class ArgParser
 					{
 						max_moves = Integer.valueOf(args[i+1]);
 						i++;
+					}
+					break;
+				case "--max-size":
+				case "--size":
+					if(i+1<args.length)
+					{
+						max_file_size = Integer.valueOf(args[i+1].substring(0, args[i+1].length()-1));
+						String unit = args[i+1].substring(args[i+1].length()-1, args[i+1].length());
+						max_file_size = max_file_size * convertUnitToBytes(unit);
 					}
 					break;
 				case "-p":

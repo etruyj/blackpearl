@@ -1,0 +1,21 @@
+
+migration_check
+	This code is used to verify copies of data are available in a different location on the BlackPearl before removing or deleting migration source data. A random number of tapes, specified by the --max-moves flag, are chosen from a provided list of tapes. After those tapes are moved to the corresponding library's EE slots, restore requests are issued for a number of files determined by the --restores flag. If all the files are restored successfully or if all files on the tape are restored successfully, the tape is okayed for ejection/reformat. If some of the files could not be restored, the check is failed. A report of each test is saved in the ../output directory.
+
+	BlackPearl performs CRC checks whenever an object enters cache. If the object is restored successfully, it will have passed this check and the integretity of the data will have been verified.
+
+	As this uses Spectra's ds3_java_cli, BlackPearl S3 credentials can be sourced from a resource file. More information can be found at developer.spectralogic.com/clients/
+
+Commands:
+	--access_key	BlackPearl access key for the desired user. (-a) also works.
+	--debug		Messages and commands are printed to the shell.
+	--ds3		specifiy the path to the ds3_java_cli. Omit final /. Example: path/to/bin
+	--endpoint	BlackPearl data IP address. (-e) also works.
+	--http		Use an insecure, non-SSL connection.
+	--input-file	Path to the file holding the list of tapes.
+	--max-moves	Maximum number of moves to execute. (-m/--moves) also work. This should not exceed the number of available entry exit slots.
+	--max-size	Maximum size of the files to be restored. If the tape has less assets below the specified size than requested in restores, the tape will fail the check. Specify unit as P, T, G, M, K, or B without a space between teh number and unit (e.g. 50M).  --size also works.
+	--print		Messages are printed to the shell.
+	--restores	Number of restores to perform per tape.
+	--save-path	Target location for the test restore files.
+
