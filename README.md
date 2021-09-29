@@ -41,7 +41,7 @@ Sample: `./migration_verify --ds3 /path/to/ds3_java_cli-5.1.2/bin -e 10.10.10.7 
 
 #### Commands:
 
-	--access_key	BlackPearl access key for the desired user. (-a) also works.
+	--access-key	BlackPearl access key for the desired user. (-a) also works.
 	--debug		Messages and commands are printed to the shell.
 	--ds3		specifiy the path to the ds3_java_cli. Omit final /. Example: path/to/bin
 	--endpoint	BlackPearl data IP address. (-e) also works.
