@@ -12,7 +12,7 @@ The most advanced version of Java which can be used for these scripts is 15. It 
 
 ## Database Download (spectraLogs)
 
-	This script is designed to automate the downloading of BlackPearl database to a target directory. Files are renamed to match a specified prefix and the date of the file in prefix-YYYY-MM-DD.tar.xz format. Can be used with either cron or Windows Task Scheduler.
+This script is designed to automate the downloading of BlackPearl database to a target directory. Files are renamed to match a specified prefix and the date of the file in prefix-YYYY-MM-DD.tar.xz format. Can be used with either cron or Windows Task Scheduler.
 
 Sample: `./spectraLogs --ds3 /path/to/ds3_java_cli-5.1.2/bin -e 10.10.10.7 -a aCcEss -k 5eCr3T --bucket Spectra-Database-Backup-50030412cfebff --save-path /path/to/watch/dir --file-prefix BP1` 
 
