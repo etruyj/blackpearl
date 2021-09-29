@@ -53,7 +53,7 @@ Sample: `./migration_verify --ds3 /path/to/ds3_java_cli-5.1.2/bin -e 10.10.10.7 
 	--restores	Number of restores to perform per tape.
 	--save-path	Target location for the test restore files.
 
- ##### Input File</b>
+ #### Input File</b>
   
   The input file is just a single column of tape barcodes that can or cannot include a header. If a header is included, it must be bar_code.
   
@@ -89,7 +89,7 @@ Sample: `./bp_ejects --ds3 /Users/foo/Downloads/ds3_java_cli-5.1.2/bin -e 10.10.
   
 	--print		Messages are printed to the shell. 
   
- ##### Input File</b>
+ #### Input File</b>
   
   The input file is just a single column of tape barcodes that can or cannot include a header. If a header is included, it must be bar_code.
   
