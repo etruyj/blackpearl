@@ -55,7 +55,7 @@ Sample: `./migration_verify --ds3 /path/to/ds3_java_cli-5.1.2/bin -e 10.10.10.7 
 
 
 
-## tapeEjection
+## Tape Ejection (bp_ejects)
 
 This script automates the ejection of tapes from Spectra Logic's BlackPearl system via Spectra Logic's ds3_java_cli. Tapes are provided to the script in a single column CSV file along with the number of moves to execute. The number of moves specified should not exceed the number of available Entry/Exit (EE) slots in your tape library. This script does support the use of resource files on Linux systems. (I'm not quite sure how to load them on Windows.)
 
