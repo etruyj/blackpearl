@@ -37,7 +37,7 @@ BlackPearl performs CRC checks whenever an object enters cache. If the object is
 
 As this uses Spectra's ds3_java_cli, BlackPearl S3 credentials can be sourced from a resource file. More information can be found at developer.spectralogic.com/clients/
 
-Sample: `./migration_verify --ds3 /path/to/ds3_java_cli-5.1.2/bin -e 10.10.10.7 -a AcCesS -k 5eCret --http --input-file /path/to/tapes-list.csv --moves 10 --restores 10 --max-size 50M --print --save-path /path/to/test/dir`
+Sample: `./bp_verify --ds3 /path/to/ds3_java_cli-5.1.2/bin -e 10.10.10.7 -a AcCesS -k 5eCret --http --input-file /path/to/tapes-list.csv --moves 10 --restores 10 --max-size 50M --print --save-path /path/to/test/dir`
 
 #### Commands:
 
