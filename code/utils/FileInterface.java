@@ -85,7 +85,7 @@ public class FileInterface
 		return list;
 	}
 
-	public static void updateSingleColumnInputFile(ArrayList<String[]> list, String input_path, String output_path, Logger logbook, boolean printToShell, boolean debug)
+	public static void updateSingleColumnInputFile(ArrayList<String[]> list, String input_path, String output_path, boolean debug)
 	{
 		FileManager outFiles = new FileManager();
 

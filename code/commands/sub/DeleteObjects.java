@@ -87,7 +87,7 @@ public class DeleteObjects
 				System.out.println("Successfully completed " + success + "/" + objectList.size() + " deletions");
 			}
 
-			FileInterface.updateSingleColumnInputFile(objectList, input_path, output_path + "/object_deletions.csv", logbook, printToShell, debug);
+			FileInterface.updateSingleColumnInputFile(objectList, input_path, output_path + "/object_deletions.csv", debug);
 		}
 		else
 		{

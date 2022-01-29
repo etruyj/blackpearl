@@ -11,10 +11,12 @@
 package com.socialvagrancy.blackpearl.commands;
 
 import com.socialvagrancy.blackpearl.structures.APICall;
+import com.socialvagrancy.blackpearl.structures.ObjectsOnTapeCall;
 import com.socialvagrancy.blackpearl.utils.DS3Interface;
 import com.socialvagrancy.utils.Logger;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 
 public class BasicCommands
 {
@@ -56,14 +58,14 @@ public class BasicCommands
 			}
 			else
 			{
-				logbook.logWithSizedLogRotation("ERROR: Failed to delete object.", 3);
+					logbook.logWithSizedLogRotation("ERROR: Failed to delete object.", 3);
 
-				return false;
+					return false;
+				}
 			}
-		}
-		else
-		{
-			logbook.logWithSizedLogRotation("WARN: deleteObject(" + bucket + ", " + object + ") aborted. Deletion not confirmed by user.", 2);
+			else
+			{
+				logbook.logWithSizedLogRotation("WARN: deleteObject(" + bucket + ", " + object + ") aborted. Deletion not confirmed by user.", 2);
 		
 			return false;
 		}
@@ -82,37 +84,46 @@ public class BasicCommands
 		else
 		{
 			logbook.logWithSizedLogRotation("ERROR: Failed to eject tape [" + barcode + "].", 3);
-			
+				
 			return false;
 		}
 	}
 
 	public boolean executeBooleanCall(String command)
 	{
-		Gson gson = new Gson();
-
-		String response = blackpearl.executeProcess(command + " -k " + secret_key);
-
-		try
+		if(blackpearl.instanceValid())
 		{
-			APICall result = gson.fromJson(response, APICall.class);
+			Gson gson = new Gson();
 
-			logbook.logWithSizedLogRotation(result.getAPICallMessage(), 2);
+			String response = blackpearl.executeProcess(command + " -k " + secret_key);
+
+			try
+			{
+				APICall result = gson.fromJson(response, APICall.class);
+	
+				logbook.logWithSizedLogRotation(result.getAPICallMessage(), 2);
 			
-			if(result.getAPICallStatus().equals("OK"))
-			{
-				return true;
+				if(result.getAPICallStatus().equals("OK"))
+				{
+					return true;
+				}
+				else
+				{
+					return false;
+				}
 			}
-			else
+			catch(JsonParseException e)
 			{
+				logbook.logWithSizedLogRotation(e.getMessage(), 3);
+				logbook.logWithSizedLogRotation(blackpearl.getCommand() + command, 2);
+
 				return false;
 			}
 		}
-		catch(Exception e)
+		else
 		{
-			logbook.logWithSizedLogRotation(e.getMessage(), 3);
-			logbook.logWithSizedLogRotation(blackpearl.getCommand() + command, 2);
-
+			logbook.logWithSizedLogRotation("ERROR: Unable to initialize java_cli instance.", 3);
+			
 			return false;
 		}
 	}
@@ -127,7 +138,40 @@ public class BasicCommands
 		//logbook.logWithSizedLogRotation();
 	}
 
-	public void getTapeContents(String barcode)
+	public ObjectsOnTapeCall getTapeContents(String barcode)
 	{
+		if(blackpearl.instanceValid())
+		{
+			logbook.logWithSizedLogRotation("CALL: getTapeContents(" + barcode + ")", 1);
+	
+			Gson gson = new Gson();
+	
+			String command = " -c get_objects_on_tape -i " + barcode;
+
+			String response = blackpearl.executeProcess(command + " -k " + secret_key);
+
+			try
+			{
+				ObjectsOnTapeCall objects = gson.fromJson(response, ObjectsOnTapeCall.class);
+
+				logbook.logWithSizedLogRotation("Found (" + objects.getObjectCount() + ") on tape [" + barcode + "]", 1);
+			
+				return objects;
+			}
+			catch(JsonParseException e)
+			{
+				logbook.logWithSizedLogRotation(e.getMessage(), 3);
+				logbook.logWithSizedLogRotation(blackpearl.getCommand() + command, 1);
+				logbook.logWithSizedLogRotation("ERROR: Unable to locate tape [" + barcode + "]", 3);
+			
+				return null;
+			}
+		}
+		else
+		{
+			logbook.logWithSizedLogRotation("ERROR: Unable to initialize java_cli instance.", 3);
+		
+			return null;
+		}
 	}
 }

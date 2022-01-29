@@ -6,6 +6,10 @@
 
 package com.socialvagrancy.blackpearl.structures;
 
+import com.socialvagrancy.utils.storage.UnitConverter;
+
+import java.math.BigInteger;
+
 public class ArgConfig
 {
 	public String access_key;
@@ -20,8 +24,14 @@ public class ArgConfig
 	public Integer entry_exit_slots;
 	public Boolean print_output;
 	public Integer restores_per_tape;
-	public String save_path;
+	public String output_path;
 	public String secret_key;
+
+	// Logging
+	public String log_path;
+	public Integer log_size;
+	public Integer log_count;
+	public Integer log_level;
 
 	public String getAccessKey()
 	{
@@ -95,46 +105,16 @@ public class ArgConfig
 		}
 	}
 
-	public long getFileSize()
+	public BigInteger getFileSize()
 	{
 		if(file_size==null)
 		{
-			return 0;
+			return new BigInteger("0");
 		}
 		else
 		{
-			long file_size_bytes = 1;
-			String file_unit = file_size.substring(file_size.length()-2, file_size.length()-1);
-
-			while(!file_unit.equals("B"))
-			{
-				switch(file_unit)
-				{
-					case "P":
-						file_unit = "T";
-						break;
-					case "T":
-						file_unit = "G";
-						break;
-					case "G":
-						file_unit = "M";
-						break;
-					case "M":
-						file_unit = "K";
-						break;
-					case "K":
-						file_unit = "B";
-						break;
-					default:
-						file_unit = "B";
-						break;
-				}
-
-				file_size_bytes = file_size_bytes * 1024;
-			}
-
-			file_size_bytes = Integer.valueOf(file_size.substring(0, file_size.length()-2)) * file_size_bytes;
-
+			BigInteger file_size_bytes = UnitConverter.humanReadableToBytes(file_size);
+			
 			return file_size_bytes;
 		}
 	}
@@ -175,6 +155,18 @@ public class ArgConfig
 		}
 	}
 
+	public String getOutputFile()
+	{
+		if(output_path==null)
+		{
+			return "../output/";
+		}
+		else
+		{
+			return output_path;
+		}
+	}
+
 	public boolean getPrint()
 	{
 		if(print_output==null)
@@ -199,18 +191,6 @@ public class ArgConfig
 		}
 	}
 
-	public String getSavePath()
-	{
-		if(save_path==null)
-		{
-			return ".";
-		}
-		else
-		{
-			return save_path;
-		}
-	}
-
 	public String getSecretKey()
 	{
 		if(secret_key==null)
@@ -223,4 +203,51 @@ public class ArgConfig
 		}
 	}
 
+	public String getLogPath()
+	{
+		if(log_path==null)
+		{
+			return "none";
+		}
+		else
+		{
+			return log_path;
+		}
+	}
+
+	public int getLogCount()
+	{
+		if(log_count==null)
+		{
+			return 0;
+		}
+		else
+		{
+			return log_count;
+		}
+	}
+
+	public int getLogSize()
+	{
+		if(log_size==null)
+		{
+			return 0;
+		}
+		else
+		{
+			return log_size;
+		}
+	}
+
+	public int getLogLevel()
+	{
+		if(log_level==null)
+		{
+			return 0;
+		}
+		else
+		{
+			return log_level;
+		}
+	}
 }

@@ -97,11 +97,11 @@ public class DS3Interface
 
 		if(WINDOWS)
 		{
-			processor.command("powershell.exe", "/c", command);
+			processor.command("powershell.exe", "/c", cmd + command);
 		}
 		else // linux/mac os
 		{
-			processor.command("bash", "-c", command);
+			processor.command("bash", "-c", cmd + command);
 		}
 
 		if(isValid)
