@@ -176,6 +176,6 @@ public class TapeEjection
 
 		// Update the csv to remove these tapes.
 		
-		FileInterface.updateSingleColumnInputFile(tapes, tapeListPath, output_path, debug);
+		FileInterface.updateSingleColumnInputFile(tapes, tapeListPath, output_path + "/completed_ejects.csv", debug);
 	}
 }

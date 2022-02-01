@@ -23,6 +23,9 @@ public class BPCLI
 
 		switch(aparser.getCommand())
 		{
+			case "download-database":
+				controller.downloadDatabase(aparser.getBucket(), aparser.getOutputFile(), aparser.getFilePrefix(), aparser.getPrintToShell(), aparser.getDebugging(), aparser.getIsWindows());
+				break;
 			case "delete-objects":
 				controller.deleteObjectsFromSingleColumnList(aparser.getBucket(), aparser.getInputFile(), aparser.getOutputFile(), aparser.getPrintToShell(), aparser.getDebugging());
 				break;

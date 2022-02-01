@@ -11,6 +11,7 @@
 package com.socialvagrancy.blackpearl.commands;
 
 import com.socialvagrancy.blackpearl.structures.APICall;
+import com.socialvagrancy.blackpearl.structures.ObjectsCall;
 import com.socialvagrancy.blackpearl.structures.ObjectsOnTapeCall;
 import com.socialvagrancy.blackpearl.utils.DS3Interface;
 import com.socialvagrancy.utils.Logger;
@@ -133,9 +134,30 @@ public class BasicCommands
 		//logbook.logWithSizedLogRotation();
 	}
 
-	public void getObject(String bucket, String object)
+	public APICall getObject(String bucket, String object, String save_path)
 	{
-		//logbook.logWithSizedLogRotation();
+		logbook.logWithSizedLogRotation("CALL: getObject(" + bucket + ", " + object + ", " + save_path + ")", 1);
+
+		Gson gson = new Gson();
+
+		String command = " -c get_object -b " + bucket + " -d " + save_path + " -o " + object;
+	       	String response = blackpearl.executeProcess(command + " -k " + secret_key);
+
+		try
+		{
+			APICall message = gson.fromJson(response, APICall.class);
+
+			logbook.logWithSizedLogRotation("Response: " + message.getAPICallStatus(), 1);
+			return message;
+		}
+		catch(JsonParseException e)
+		{
+			logbook.logWithSizedLogRotation(e.getMessage(), 3);
+			logbook.logWithSizedLogRotation(blackpearl.getCommand() + command, 1);
+			logbook.logWithSizedLogRotation("ERROR: Unabled to download " + object, 3);
+			
+			return null;
+		}	
 	}
 
 	public ObjectsOnTapeCall getTapeContents(String barcode)
@@ -171,6 +193,34 @@ public class BasicCommands
 		{
 			logbook.logWithSizedLogRotation("ERROR: Unable to initialize java_cli instance.", 3);
 		
+			return null;
+		}
+	}
+
+	public ObjectsCall listObjects(String bucket)
+	{
+		Gson gson = new Gson();
+
+		logbook.logWithSizedLogRotation("CALL: listObjects(" + bucket + ")", 1);
+
+		String command = " -c get_bucket -b " + bucket;
+
+		String response = blackpearl.executeProcess(command);
+
+		try
+		{
+			ObjectsCall objectList = gson.fromJson(response, ObjectsCall.class);
+
+			logbook.logWithSizedLogRotation("Found (" + objectList.getNumObjects() + ") objects in the bucket.", 1);
+
+			return objectList;	
+		}
+		catch(JsonParseException e)
+		{
+			logbook.logWithSizedLogRotation(e.getMessage(), 3);
+			logbook.logWithSizedLogRotation(blackpearl.getCommand() + command, 1);
+			logbook.logWithSizedLogRotation("ERROR: Unable to locate bucket [" + bucket + "]", 3);
+			
 			return null;
 		}
 	}

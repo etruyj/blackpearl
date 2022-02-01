@@ -67,7 +67,6 @@ public class DeleteObjects
 				}
 				else
 				{	
-					logbook.logWithSizedLogRotation("delete failed", 1);
 					
 					if(printToShell || debug)
 					{

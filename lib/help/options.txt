@@ -1,0 +1,20 @@
+
+BPCLI
+	This script automates some actions with the BlackPearl through calls to Spectra Logic's DS3 JAVA CLI. The JAVA CLI needs to be downloaded from developer.spectralogic.com and the path to the /bin directory specified either in the config.yaml file or with the --ds3 flag. (REMEMBER to omit the final / on all directory path listings.). 
+
+REQUIRES: JAVA 14 OR JAVA 15. This code requires Java 14+ to run. The JAVA CLI is coded at JAVA 8 and is no longer executable at JAVA 16+. 
+
+Options:
+	--access-key/-a		BlackPearl access key for the specified user.
+	--bucket/-b		Bucket name.
+	--debug			Same as --print ATM. May include deeper diagnostics at a future date.
+	--ds3			Path to the /bin directory of the Java CLI application.
+	--endpoint/-e		BlackPearl data IP address.
+	--file-prefix		Prefix to be used when naming downloaded files (databases).
+	--http			Use an insecure, non-SSL connection.
+	--input-file		Path and name of the file holding list of tapes or objects.
+	--max-moves/-m		The maximum number of moves the BlackPearl will make. Should equate to available EE slots. (--moves alos works)
+	--output-path		Directory where process output should be stored. Includes CSVs of tape ejects or directory where databases will be stored. 
+	--print			Messages are printed to the shell.
+	--secret-key		BlackPearl secret key for the specified user.
+	

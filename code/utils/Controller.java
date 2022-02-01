@@ -23,6 +23,11 @@ public class Controller
 		advanced = new Advanced(java_cli, logs);
 	}
 
+	public void downloadDatabase(String bucket, String savePath, String prefix, boolean printToShell, boolean debug, boolean isWINDOWS)
+	{
+		advanced.downloadDatabase(bucket, savePath, prefix, printToShell, debug, isWINDOWS);
+	}
+
 	public void deleteObjectsFromSingleColumnList(String bucket, String input_path, String output_path, boolean printToShell, boolean debug)
 	{
 		advanced.deleteListSingleColumn(bucket, input_path, output_path, printToShell, debug);

@@ -7,6 +7,7 @@
 
 package com.socialvagrancy.blackpearl.commands;
 
+import com.socialvagrancy.blackpearl.commands.sub.Database;
 import com.socialvagrancy.blackpearl.commands.sub.DeleteObjects;
 import com.socialvagrancy.blackpearl.commands.sub.TapeEjection;
 import com.socialvagrancy.utils.Logger;
@@ -25,6 +26,11 @@ public class Advanced
 	public void deleteListSingleColumn(String bucket, String input_path, String output_path, boolean printToShell, boolean debug)
 	{
 		DeleteObjects.fromSingleColumnList(java_cli, bucket, input_path, output_path, logbook, printToShell, debug);
+	}
+
+	public void downloadDatabase(String bucket, String savePath, String prefix, boolean printToShell, boolean debug, boolean isWINDOWS)
+	{
+		Database.downloadMostRecentLog(java_cli, bucket, savePath, prefix, logbook, printToShell, debug, isWINDOWS);
 	}
 
 	public void ejectTapes(String input_path, String output_path, int max_moves, boolean ignoreUsedTapes, boolean printToShell, boolean debug)
