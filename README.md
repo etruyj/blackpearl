@@ -1,4 +1,6 @@
 # BlackPearl Scripts
+ARCHIVED. ALL FEATURES AND DEVELOPMENT CAN BE FOUND UNDER THE BP PYTHON TOOL https://github.com/etruyj/blackpearl_python_tool
+
 A hodge-podge of scripts for automatic interactions with the Spectra Logic BlackPearl through the ds3_java_cli. These scripts were coded in order to solve a few disperate problems. Other than the solution implementing Spectra Logic's ds3_java_cli in order to interact with the BlackPearl, there is no specific relationship for them. This repository was created with the goal of warehousing the scripts and utilzing a few base packages for the core commands instead of re-inventing the wheel for each requirement.
 
 All scripts rely on Spectra Logic's ds3_java_cli, which can be downloaded at developer.spectralogic.com/clients.
